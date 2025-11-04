@@ -8,14 +8,16 @@ function App() {
   const [members, setMembers] = useState([]);
 
   const fetchMembers = async () => {
-    const res = await fetch(API_BASE);
-    const data = await res.json();
-    setMembers(data);
+    try {
+      const res = await fetch(`${API_BASE}`);
+      if (!res.ok) throw new Error("Failed to fetch members");
+      const data = await res.json();
+      setMembers(data);
+    } catch (err) {
+      console.error("Error fetching members:", err);
+      setMembers([]); 
+    }
   };
-
-  useEffect(() => {
-    fetchMembers();
-  }, []);
 
   return (
     <div className="app-container">

@@ -51,7 +51,7 @@ export default function Dashboard({ onAdd, members }) {
           onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
         >
           <option value="">No Parent</option>
-          {members.map((m) => (
+          {(Array.isArray(members) ? members : []).map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
             </option>
