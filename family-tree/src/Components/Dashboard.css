@@ -1,55 +1,89 @@
 .dashboard-container {
-  margin: 20px 0;
-  padding: 20px 25px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fafafa;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  margin: 2rem 0;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
   max-width: 500px;
+  border: 1px solid var(--neutral-200);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dashboard-container h2 {
-  margin-bottom: 15px;
-  font-size: 22px;
-  color: #333;
+  margin-bottom: 1.5rem;
+  color: var(--neutral-900);
   text-align: center;
+  font-size: 1.5rem;
 }
 
 .dashboard-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 }
 
 .dashboard-form input[type="text"],
 .dashboard-form select,
 .dashboard-form input[type="file"] {
-  padding: 10px 12px;
-  border: 1px solid #bbb;
-  border-radius: 6px;
-  font-size: 15px;
-  background-color: #fff;
-  transition: border-color 0.3s ease;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--neutral-300);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: var(--neutral-50);
+  color: var(--neutral-900);
+  transition: all 0.2s ease;
+}
+
+.dashboard-form input[type="text"]::placeholder,
+.dashboard-form select::placeholder {
+  color: var(--neutral-400);
+}
+
+.dashboard-form input:hover,
+.dashboard-form select:hover {
+  background-color: white;
+  border-color: var(--neutral-300);
 }
 
 .dashboard-form input:focus,
 .dashboard-form select:focus {
-  border-color: #007bff;
+  background-color: white;
+  border-color: var(--primary);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .dashboard-form button {
-  background-color: #007bff;
-  color: #fff;
-  font-size: 16px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
   font-weight: 500;
-  padding: 10px 0;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .dashboard-form button:hover {
-  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    margin: 1.5rem auto;
+    padding: 1.5rem;
+  }
+
+  .dashboard-form {
+    gap: 0.875rem;
+  }
 }
