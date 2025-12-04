@@ -81,13 +81,18 @@ function Node({ node, map, updateMember, deleteMember }) {
 
 const styles = {
   container: { width: "100%" },
-  empty: { color: "#666" },
+  empty: {
+    color: "var(--neutral-500)",
+    fontSize: 16,
+    textAlign: "center",
+    padding: "var(--spacing-4)",
+  },
 
   stack: {
     display: "flex",
     flexDirection: "column",
-    gap: 32,
-    padding: 16,
+    gap: "var(--spacing-5)",
+    padding: "var(--spacing-3)",
     boxSizing: "border-box",
     width: "100%",
   },
@@ -96,42 +101,76 @@ const styles = {
 
   nodeColumn: { display: "flex", flexDirection: "column", alignItems: "center" },
 
-  parentRow: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center" },
+  parentRow: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
 
-  parentInner: { display: "flex", alignItems: "center", gap: 14, zIndex: 2, marginBottom: 8 },
+  parentInner: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--spacing-3)",
+    zIndex: 2,
+    marginBottom: "var(--spacing-2)",
+  },
 
-  spouseGap: { width: 12 },
+  spouseGap: { width: "var(--spacing-2)" },
 
-  marriageLine: { height: 2, width: "40%", background: "#9CA3AF", borderRadius: 2 },
+  marriageLine: {
+    height: 3,
+    width: "40%",
+    background: "linear-gradient(90deg, var(--neutral-300) 0%, var(--neutral-400) 50%, var(--neutral-300) 100%)",
+    borderRadius: "var(--radius-sm)",
+    boxShadow: "var(--shadow-sm)",
+  },
 
-  childrenSection: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center" },
+  childrenSection: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
 
-  verticalSvg: { marginTop: 6, marginBottom: 6 },
+  verticalSvg: {
+    marginTop: "var(--spacing-1)",
+    marginBottom: "var(--spacing-1)",
+  },
 
-  horizontalConnectorWrapper: { width: "90%", display: "flex", justifyContent: "center" },
+  horizontalConnectorWrapper: {
+    width: "90%",
+    display: "flex",
+    justifyContent: "center",
+  },
 
-  horizontalConnector: { height: 2, width: "100%", background: "#9CA3AF", borderRadius: 2 },
+  horizontalConnector: {
+    height: 3,
+    width: "100%",
+    background: "linear-gradient(90deg, var(--neutral-300) 0%, var(--neutral-400) 50%, var(--neutral-300) 100%)",
+    borderRadius: "var(--radius-sm)",
+    boxShadow: "var(--shadow-sm)",
+  },
 
-  /* IMPORTANT CHANGES HERE: remove horizontal scroll, allow wrap and center children */
   childrenScroll: {
     width: "100%",
-    overflowX: "visible", /* not scroll */
-    paddingTop: 12,
+    overflowX: "visible",
+    paddingTop: "var(--spacing-2)",
   },
 
   childrenRow: {
     display: "flex",
-    gap: 20,
+    gap: "var(--spacing-3)",
     alignItems: "flex-start",
-    justifyContent: "center",  /* center children, even when wrapped */
-    paddingBottom: 8,
-    flexWrap: "wrap",          /* allow wrapping instead of scrolling */
+    justifyContent: "center",
+    paddingBottom: "var(--spacing-2)",
+    flexWrap: "wrap",
   },
 
   childCell: {
     display: "inline-block",
     verticalAlign: "top",
     minWidth: 180,
-    marginBottom: 12, /* spacing when wrapped */
+    marginBottom: "var(--spacing-2)",
   }
 };

@@ -81,7 +81,13 @@ export default function MemberCard({ member, updateMember, deleteMember }) {
           }}
         >
           <div style={styles.modal}>
-            <h3>Edit Member</h3>
+            <h3 style={{
+              marginTop: 0,
+              fontSize: 24,
+              fontWeight: 700,
+              color: "var(--neutral-800)",
+              marginBottom: "var(--spacing-2)",
+            }}>Edit Member</h3>
 
             <label style={styles.modalLabel}>
               Name
@@ -137,12 +143,11 @@ export default function MemberCard({ member, updateMember, deleteMember }) {
   );
 }
 
-/* styles */
 const styles = {
   wrapper: {
     display: "inline-block",
     position: "relative",
-    margin: 6,
+    margin: "var(--spacing-1)",
   },
 
   avatarButton: {
@@ -151,95 +156,117 @@ const styles = {
     padding: 0,
     cursor: "pointer",
     outline: "none",
+    transition: "transform var(--transition-fast)",
+    display: "block",
   },
 
   avatarImg: {
-    width: 60,
-    height: 60,
-    borderRadius: "50%",
+    width: 80,
+    height: 80,
+    borderRadius: "var(--radius-full)",
     objectFit: "cover",
     display: "block",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+    boxShadow: "var(--shadow-lg)",
+    border: "4px solid white",
+    transition: "all var(--transition-base)",
   },
 
   fallbackAvatar: (gender) => ({
-    width: 60,
-    height: 60,
-    borderRadius: "50%",
+    width: 80,
+    height: 80,
+    borderRadius: "var(--radius-full)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: gender === "female" ? "#ec4899" : "#3b82f6",
+    background: gender === "female"
+      ? "linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
+      : "linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%)",
     color: "#fff",
-    fontSize: 20,
+    fontSize: 32,
     fontWeight: 700,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+    boxShadow: "var(--shadow-lg)",
+    border: "4px solid white",
+    transition: "all var(--transition-base)",
   }),
 
   hoverName: {
     position: "absolute",
-    top: "100%",
+    top: "calc(100% + 8px)",
     left: "50%",
     transform: "translateX(-50%)",
-    marginTop: 6,
-    padding: "4px 10px",
-    background: "rgba(0,0,0,0.75)",
+    padding: "8px 16px",
+    background: "var(--neutral-800)",
     color: "#fff",
-    borderRadius: 6,
-    fontSize: 13,
+    borderRadius: "var(--radius-md)",
+    fontSize: 14,
+    fontWeight: 500,
     whiteSpace: "nowrap",
     zIndex: 20,
+    boxShadow: "var(--shadow-lg)",
+    animation: "fadeIn var(--transition-fast)",
   },
 
-  /* Modal */
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.45)",
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(4px)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 2000,
-    padding: 20,
+    padding: "var(--spacing-3)",
+    animation: "fadeIn var(--transition-base)",
   },
 
   modal: {
-    width: 420,
+    width: 480,
     maxWidth: "100%",
     background: "#fff",
-    padding: 20,
-    borderRadius: 10,
-    boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
+    padding: "var(--spacing-4)",
+    borderRadius: "var(--radius-xl)",
+    boxShadow: "var(--shadow-xl)",
+    animation: "slideUp var(--transition-base)",
   },
 
   modalLabel: {
     display: "flex",
     flexDirection: "column",
-    gap: 6,
-    marginTop: 10,
+    gap: "var(--spacing-1)",
+    marginTop: "var(--spacing-2)",
     fontSize: 14,
+    fontWeight: 500,
+    color: "var(--neutral-700)",
   },
 
   modalInput: {
-    padding: 8,
-    borderRadius: 6,
-    border: "1px solid #ddd",
-    fontSize: 14,
+    padding: "12px 16px",
+    borderRadius: "var(--radius-md)",
+    border: "2px solid var(--neutral-200)",
+    fontSize: 15,
+    transition: "all var(--transition-fast)",
+    outline: "none",
+    fontFamily: "inherit",
   },
 
   previewRow: {
     display: "flex",
-    gap: 12,
+    gap: "var(--spacing-2)",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: "var(--spacing-2)",
+    padding: "var(--spacing-2)",
+    background: "var(--neutral-50)",
+    borderRadius: "var(--radius-md)",
   },
 
   previewBox: {
-    width: 70,
-    height: 70,
-    borderRadius: 8,
+    width: 80,
+    height: 80,
+    borderRadius: "var(--radius-lg)",
     overflow: "hidden",
-    background: "#f3f4f6",
+    background: "var(--neutral-100)",
+    boxShadow: "var(--shadow-sm)",
+    border: "2px solid white",
   },
 
   previewImg: {
@@ -251,33 +278,45 @@ const styles = {
   modalButtons: {
     display: "flex",
     justifyContent: "flex-end",
-    gap: 10,
-    marginTop: 20,
+    gap: "var(--spacing-2)",
+    marginTop: "var(--spacing-4)",
   },
 
   btnAlt: {
-    background: "#e5e7eb",
-    padding: "8px 14px",
-    borderRadius: 8,
-    border: "none",
+    background: "var(--neutral-100)",
+    padding: "12px 20px",
+    borderRadius: "var(--radius-md)",
+    border: "2px solid var(--neutral-200)",
     cursor: "pointer",
+    fontWeight: 600,
+    fontSize: 15,
+    transition: "all var(--transition-fast)",
+    color: "var(--neutral-700)",
   },
 
   btnSave: {
-    background: "#2563eb",
+    background: "linear-gradient(135deg, var(--secondary-500) 0%, var(--secondary-600) 100%)",
     color: "#fff",
-    padding: "8px 14px",
-    borderRadius: 8,
+    padding: "12px 20px",
+    borderRadius: "var(--radius-md)",
     border: "none",
     cursor: "pointer",
+    fontWeight: 600,
+    fontSize: 15,
+    transition: "all var(--transition-fast)",
+    boxShadow: "var(--shadow-sm)",
   },
 
   btnDelete: {
-    background: "#ef4444",
+    background: "linear-gradient(135deg, var(--error-500) 0%, var(--error-600) 100%)",
     color: "#fff",
-    padding: "8px 14px",
-    borderRadius: 8,
+    padding: "12px 20px",
+    borderRadius: "var(--radius-md)",
     border: "none",
     cursor: "pointer",
+    fontWeight: 600,
+    fontSize: 15,
+    transition: "all var(--transition-fast)",
+    boxShadow: "var(--shadow-sm)",
   },
 };

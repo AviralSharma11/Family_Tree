@@ -40,7 +40,13 @@ export default function Dashboard({ members = {}, onAdd }) {
 
   return (
     <div style={styles.card}>
-      <h3 style={{ marginTop: 0 }}>Dashboard</h3>
+      <h3 style={{
+        marginTop: 0,
+        fontSize: 24,
+        fontWeight: 700,
+        color: "var(--neutral-800)",
+        marginBottom: "var(--spacing-2)",
+      }}>Dashboard</h3>
       <form onSubmit={submit} style={styles.form}>
         <label style={styles.label}>Name
           <input value={name} onChange={e => setName(e.target.value)} style={styles.input} placeholder="Full name" />
@@ -98,11 +104,28 @@ export default function Dashboard({ members = {}, onAdd }) {
         </div>
       </form>
 
-      <div style={{ marginTop: 12 }}>
-        <strong>Tips:</strong>
-        <ul style={{ paddingLeft: 18 }}>
-          <li>Add spouse first, then children will automatically have both parents if you attach to one parent who has a spouse.</li>
-          <li>Use Rename on cards to quickly update names.</li>
+      <div style={{
+        marginTop: "var(--spacing-3)",
+        padding: "var(--spacing-2)",
+        background: "linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%)",
+        borderRadius: "var(--radius-md)",
+        borderLeft: "4px solid var(--primary-500)",
+      }}>
+        <strong style={{
+          color: "var(--neutral-800)",
+          fontSize: 15,
+          display: "block",
+          marginBottom: "var(--spacing-1)",
+        }}>Tips:</strong>
+        <ul style={{
+          paddingLeft: 20,
+          margin: "var(--spacing-1) 0 0 0",
+          color: "var(--neutral-700)",
+          fontSize: 14,
+          lineHeight: 1.6,
+        }}>
+          <li style={{ marginBottom: "var(--spacing-1)" }}>Add spouse first, then children will automatically have both parents if you attach to one parent who has a spouse.</li>
+          <li style={{ marginBottom: "var(--spacing-1)" }}>Use Rename on cards to quickly update names.</li>
           <li>Image URL is optional — if provided it will be used as the member's avatar.</li>
         </ul>
       </div>
@@ -111,14 +134,88 @@ export default function Dashboard({ members = {}, onAdd }) {
 }
 
 const styles = {
-  card: { background: "#fff", padding: 12, borderRadius: 8, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" },
-  form: { display: "flex", flexDirection: "column", gap: 8 },
-  label: { display: "flex", flexDirection: "column", fontSize: 13, color: "#333" },
-  input: { padding: 8, fontSize: 14, borderRadius: 6, border: "1px solid #ddd" },
-  btnPrimary: { padding: "8px 12px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 6 },
-  btnAlt: { padding: "8px 12px", background: "#e5e7eb", border: "none", borderRadius: 6 },
+  card: {
+    background: "rgba(255, 255, 255, 0.95)",
+    padding: "var(--spacing-3)",
+    borderRadius: "var(--radius-xl)",
+    boxShadow: "var(--shadow-lg)",
+    border: "1px solid rgba(255, 255, 255, 0.5)",
+    backdropFilter: "blur(10px)",
+    transition: "all var(--transition-base)",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "var(--spacing-2)"
+  },
+  label: {
+    display: "flex",
+    flexDirection: "column",
+    fontSize: 14,
+    fontWeight: 500,
+    color: "var(--neutral-700)",
+    gap: "var(--spacing-1)",
+  },
+  input: {
+    padding: "12px 16px",
+    fontSize: 15,
+    borderRadius: "var(--radius-md)",
+    border: "2px solid var(--neutral-200)",
+    background: "white",
+    transition: "all var(--transition-fast)",
+    outline: "none",
+    fontFamily: "inherit",
+  },
+  btnPrimary: {
+    padding: "12px 24px",
+    background: "linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "var(--radius-md)",
+    fontWeight: 600,
+    fontSize: 15,
+    cursor: "pointer",
+    transition: "all var(--transition-fast)",
+    boxShadow: "var(--shadow-sm)",
+    transform: "translateY(0)",
+  },
+  btnAlt: {
+    padding: "12px 24px",
+    background: "var(--neutral-100)",
+    border: "2px solid var(--neutral-200)",
+    borderRadius: "var(--radius-md)",
+    fontWeight: 600,
+    fontSize: 15,
+    cursor: "pointer",
+    transition: "all var(--transition-fast)",
+    color: "var(--neutral-700)",
+  },
 
-  previewRow: { display: "flex", gap: 12, alignItems: "center", marginTop: 6 },
-  previewBox: { width: 64, height: 64, borderRadius: 8, overflow: "hidden", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.03)" },
-  previewImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  previewRow: {
+    display: "flex",
+    gap: "var(--spacing-2)",
+    alignItems: "center",
+    marginTop: "var(--spacing-1)",
+    padding: "var(--spacing-2)",
+    background: "var(--neutral-50)",
+    borderRadius: "var(--radius-md)",
+  },
+  previewBox: {
+    width: 80,
+    height: 80,
+    borderRadius: "var(--radius-lg)",
+    overflow: "hidden",
+    background: "var(--neutral-100)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "var(--shadow-sm)",
+    border: "2px solid white",
+  },
+  previewImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block"
+  },
 };
