@@ -139,10 +139,10 @@ const styles = {
 
   treeContainer: {
     borderRadius: "var(--radius-xl)",
-    padding: "var(--spacing-4)",
+    padding: "clamp(var(--spacing-2), 3vw, var(--spacing-4))",
     background: "rgba(255, 255, 255, 0.85)",
     backdropFilter: "blur(10px)",
-    height: "70vh",
+    height: "clamp(50vh, 70vh, 80vh)",
     overflowY: "auto",
     overflowX: "hidden",
     boxShadow: "var(--shadow-lg)",

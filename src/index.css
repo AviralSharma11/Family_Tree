@@ -134,3 +134,44 @@ button:active {
 *::-webkit-scrollbar-thumb:hover {
   background: var(--neutral-400);
 }
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+
+  :root {
+    --spacing-4: 24px;
+    --spacing-5: 32px;
+  }
+
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  :root {
+    --spacing-1: 6px;
+    --spacing-2: 12px;
+    --spacing-3: 16px;
+    --spacing-4: 20px;
+    --spacing-5: 24px;
+  }
+
+  button:hover {
+    transform: translateY(0);
+  }
+}

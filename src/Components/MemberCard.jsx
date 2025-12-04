@@ -161,19 +161,19 @@ const styles = {
   },
 
   avatarImg: {
-    width: 80,
-    height: 80,
+    width: "clamp(60px, 12vw, 80px)",
+    height: "clamp(60px, 12vw, 80px)",
     borderRadius: "var(--radius-full)",
     objectFit: "cover",
     display: "block",
     boxShadow: "var(--shadow-lg)",
-    border: "4px solid white",
+    border: "3px solid white",
     transition: "all var(--transition-base)",
   },
 
   fallbackAvatar: (gender) => ({
-    width: 80,
-    height: 80,
+    width: "clamp(60px, 12vw, 80px)",
+    height: "clamp(60px, 12vw, 80px)",
     borderRadius: "var(--radius-full)",
     display: "flex",
     alignItems: "center",
@@ -182,10 +182,10 @@ const styles = {
       ? "linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
       : "linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%)",
     color: "#fff",
-    fontSize: 32,
+    fontSize: "clamp(24px, 5vw, 32px)",
     fontWeight: 700,
     boxShadow: "var(--shadow-lg)",
-    border: "4px solid white",
+    border: "3px solid white",
     transition: "all var(--transition-base)",
   }),
 
@@ -220,10 +220,10 @@ const styles = {
   },
 
   modal: {
-    width: 480,
+    width: "clamp(280px, 90vw, 480px)",
     maxWidth: "100%",
     background: "#fff",
-    padding: "var(--spacing-4)",
+    padding: "clamp(var(--spacing-2), 4vw, var(--spacing-4))",
     borderRadius: "var(--radius-xl)",
     boxShadow: "var(--shadow-xl)",
     animation: "slideUp var(--transition-base)",
@@ -234,16 +234,16 @@ const styles = {
     flexDirection: "column",
     gap: "var(--spacing-1)",
     marginTop: "var(--spacing-2)",
-    fontSize: 14,
+    fontSize: "clamp(13px, 3vw, 14px)",
     fontWeight: 500,
     color: "var(--neutral-700)",
   },
 
   modalInput: {
-    padding: "12px 16px",
+    padding: "clamp(10px, 2vw, 12px) clamp(12px, 3vw, 16px)",
     borderRadius: "var(--radius-md)",
     border: "2px solid var(--neutral-200)",
-    fontSize: 15,
+    fontSize: "clamp(14px, 3vw, 15px)",
     transition: "all var(--transition-fast)",
     outline: "none",
     fontFamily: "inherit",
@@ -260,8 +260,8 @@ const styles = {
   },
 
   previewBox: {
-    width: 80,
-    height: 80,
+    width: "clamp(70px, 15vw, 80px)",
+    height: "clamp(70px, 15vw, 80px)",
     borderRadius: "var(--radius-lg)",
     overflow: "hidden",
     background: "var(--neutral-100)",
