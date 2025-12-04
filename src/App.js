@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import FamilyTree from "./Components/FamilyTree.jsx";
 import Dashboard from "./Components/Dashboard.jsx";
 
@@ -9,91 +9,166 @@ const sampleData = {
     1: { id: 1, name: "Kaushalya", gender: "female", imageUrl: "https://www.indianetzone.com/kaushalya_wife_king_dasaratha", spouseId: 2, parents: [], children: [3]},
     2: { id: 2, name: "Dashrath", gender: "male", spouseId: 1, parents: [], children: [3] },
     3: { id: 3, name: "Ram", gender: "male", spouseId: null, parents: [1,2], children: [] },
-    // 4: { id: 4, name: "", gender: "female", spouseId: 5, parents: [1,2], children: [6] },
-    // 5: { id: 5, name: "", gender: "male", spouseId: 4, parents: [], children: [6] },
-    // 6: { id: 6, name: "", gender: "female", spouseId: null, parents: [4,5], children: [] }
   }
 };
 
-export default function App() {
-  const [data, setData] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : sampleData;
-    } catch {
-      return sampleData;
+/** Robust loader: accepts multiple formats and returns canonical { members: {..} } */
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return sampleData;
+
+    const parsed = JSON.parse(raw);
+
+    // Already canonical shape
+    if (parsed && typeof parsed === "object" && parsed.members && typeof parsed.members === "object") {
+      return parsed;
     }
-  });
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data]);
-
-  const addMember = (member, attach) => {
-    const id = Date.now();
-    const newMembers = {
-      ...data.members,
-      [id]: { id, name: member.name, gender: member.gender, spouseId: null, parents: [], children: [] }
-    };
-
-    if (attach?.type === "spouse" && attach.targetId) {
-      const target = { ...newMembers[attach.targetId], spouseId: id };
-      newMembers[attach.targetId] = target;
-      newMembers[id].spouseId = attach.targetId;
-    } else if (attach?.type === "child" && attach.targetId) {
-      const target = newMembers[attach.targetId];
-      const spouseId = target?.spouseId || null;
-      newMembers[id].parents = spouseId ? [attach.targetId, spouseId] : [attach.targetId];
-      newMembers[attach.targetId] = { ...target, children: [...(target.children || []), id] };
-      if (spouseId) {
-        const spouse = newMembers[spouseId];
-        newMembers[spouseId] = { ...spouse, children: [...(spouse.children || []), id] };
+    // Top-level members map (keys are ids)
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const values = Object.values(parsed);
+      if (values.length > 0 && values[0] && typeof values[0] === "object" && ("id" in values[0] || "name" in values[0])) {
+        return { members: parsed };
       }
     }
 
-    setData({ members: newMembers });
+    // Array of member objects
+    if (Array.isArray(parsed)) {
+      const members = {};
+      parsed.forEach(m => {
+        if (m && (m.id || m.name)) members[m.id ?? Date.now()] = { ...m };
+      });
+      return { members };
+    }
+
+    // fallback
+    return sampleData;
+  } catch (err) {
+    console.warn("Failed to parse localStorage, using sampleData", err);
+    return sampleData;
+  }
+}
+
+export default function App() {
+  const [data, setData] = useState(() => loadFromLocalStorage());
+  const treeRef = useRef(null);
+
+  // persist canonical shape
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error("Failed to write localStorage", e);
+    }
+  }, [data]);
+
+  // export to print/PDF
+  const exportToPdf = () => {
+    const node = treeRef.current;
+    if (!node) {
+      alert("Tree not found.");
+      return;
+    }
+
+    const cloned = node.cloneNode(true);
+    const html = `
+      <html>
+        <head>
+          <title>Family Tree</title>
+          <style>
+            body { margin: 20px; font-family: system-ui, Arial, sans-serif; }
+            .tree-wrapper { width: 100%; }
+            img { max-width: 100%; height: auto; }
+            * { box-shadow: none !important; }
+          </style>
+        </head>
+        <body>
+          <h2 style="text-align:center">Family Tree</h2>
+          <div class="tree-wrapper">${cloned.innerHTML}</div>
+          <script>
+            window.onload = function() { setTimeout(function(){ window.print(); }, 250); };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const w = window.open("", "_blank");
+    if (!w) {
+      alert("Popup blocked. Allow popups for this site to export.");
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   };
 
-  const updateMember = (id, patch) => {
+  // addMember: functional update and preserve existing members map
+  // member payload may include optional fields: imageUrl, socialMedia, dob, dod, description
+  const addMember = (member, attach) => {
     setData(prev => {
-      const copy = { ...prev.members };
-      copy[id] = { ...copy[id], ...patch };
-      return { members: copy };
+      const id = Date.now();
+      const newMember = {
+        id,
+        name: member.name,
+        gender: member.gender,
+        imageUrl: member.imageUrl ?? null,
+        socialMedia: member.socialMedia ?? null,
+        description: member.description ?? "",
+        dob: member.dob ?? null,
+        dod: member.dod ?? null,
+        spouseId: null,
+        parents: [],
+        children: []
+      };
+
+      const members = { ...(prev.members || {}), [id]: newMember };
+
+      if (attach?.type === "spouse" && attach.targetId) {
+        const target = { ...(members[attach.targetId] || {}), spouseId: id };
+        members[attach.targetId] = target;
+        members[id].spouseId = attach.targetId;
+      } else if (attach?.type === "child" && attach.targetId) {
+        const target = members[attach.targetId];
+        const spouseId = target?.spouseId || null;
+        members[id].parents = spouseId ? [attach.targetId, spouseId] : [attach.targetId];
+        members[attach.targetId] = { ...target, children: [...(target.children || []), id] };
+        if (spouseId) {
+          const spouse = members[spouseId];
+          members[spouseId] = { ...spouse, children: [...(spouse.children || []), id] };
+        }
+      }
+
+      return { members };
     });
   };
 
+  // update member safely (functional)
+  const updateMember = (id, patch) => {
+    setData(prev => {
+      const members = { ...(prev.members || {}) };
+      if (!members[id]) return prev;
+      members[id] = { ...members[id], ...patch };
+      return { members };
+    });
+  };
+
+  // delete member safely and remove references
   const deleteMember = (idToDelete) => {
     setData(prev => {
-      const copy = { ...prev.members };
+      const members = { ...(prev.members || {}) };
+      if (!members[idToDelete]) return prev;
 
-      // If the member doesn't exist, do nothing
-      if (!copy[idToDelete]) return prev;
-
-      // 1) Remove references to this member from all other members
-      Object.keys(copy).forEach(k => {
-        const m = copy[k];
+      Object.keys(members).forEach(k => {
+        const m = members[k];
         if (!m) return;
-
-        // clear spouse link if pointing to deleted id
-        if (m.spouseId && m.spouseId === idToDelete) {
-          copy[k] = { ...m, spouseId: null };
-        }
-
-        // remove from parents array if present
-        if (Array.isArray(m.parents) && m.parents.some(p => p === idToDelete)) {
-          copy[k] = { ...copy[k], parents: m.parents.filter(p => p !== idToDelete) };
-        }
-
-        // remove from children array if present
-        if (Array.isArray(m.children) && m.children.some(c => c === idToDelete)) {
-          copy[k] = { ...copy[k], children: m.children.filter(c => c !== idToDelete) };
-        }
+        if (m.spouseId && m.spouseId === idToDelete) members[k] = { ...m, spouseId: null };
+        if (Array.isArray(m.parents)) members[k] = { ...members[k], parents: m.parents.filter(p => p !== idToDelete) };
+        if (Array.isArray(m.children)) members[k] = { ...members[k], children: m.children.filter(c => c !== idToDelete) };
       });
 
-      // 2) delete member itself
-      delete copy[idToDelete];
-
-      return { members: copy };
+      delete members[idToDelete];
+      return { members };
     });
   };
 
@@ -101,12 +176,15 @@ export default function App() {
     <div style={styles.app}>
       <h1 style={styles.title}>Family Tree</h1>
 
-      {/* Tree fills the viewport height and is scrollable */}
-      <div style={styles.treeContainer}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
+        <button onClick={exportToPdf} style={{ padding: "8px 12px", borderRadius: 6 }}>Download PDF</button>
+      </div>
+
+      {/* attach ref to this wrapper so export can clone its contents */}
+      <div ref={treeRef} style={styles.treeContainer}>
         <FamilyTree members={data.members} updateMember={updateMember} deleteMember={deleteMember} />
       </div>
 
-      {/* Dashboard sits below the tree */}
       <div style={styles.dashboardContainer}>
         <Dashboard members={data.members} onAdd={addMember} />
       </div>

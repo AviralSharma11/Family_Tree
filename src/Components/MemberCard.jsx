@@ -1,30 +1,45 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 
 /*
- MemberCard:
- - shows only circular profile picture
- - name appears on hover (via react state)
- - click opens modal to edit/delete
+ MemberCard: avatar-only. On click opens modal that shows/edit:
+ - name, imageUrl, socialMedia, dob, dod, description
+ - parents (mother/father names resolved via members map)
 */
 
-export default function MemberCard({ member, updateMember, deleteMember }) {
+export default function MemberCard({ member, members = {}, updateMember, deleteMember }) {
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
+
   const [editingName, setEditingName] = useState(member?.name || "");
   const [editingImage, setEditingImage] = useState(member?.imageUrl || "");
+  const [editingSocial, setEditingSocial] = useState(member?.socialMedia || "");
+  const [editingDob, setEditingDob] = useState(member?.dob || "");
+  const [editingDod, setEditingDod] = useState(member?.dod || "");
+  const [editingDesc, setEditingDesc] = useState(member?.description || "");
   const [imgError, setImgError] = useState(false);
 
-  // Sync edits when member changes
   useEffect(() => {
-  setEditingName(member?.name || "");
-  setEditingImage(member?.imageUrl || "");
-  setImgError(false);
-}, [member]);
+    setEditingName(member?.name || "");
+    setEditingImage(member?.imageUrl || "");
+    setEditingSocial(member?.socialMedia || "");
+    setEditingDob(member?.dob || "");
+    setEditingDod(member?.dod || "");
+    setEditingDesc(member?.description || "");
+    setImgError(false);
+  }, [member]);
+
+  const mother = (member.parents || []).map(id => members[id]).find(m => m && m.gender === "female");
+  const father = (member.parents || []).map(id => members[id]).find(m => m && m.gender === "male");
 
   const save = () => {
     const patch = {};
     if (editingName !== member.name) patch.name = editingName;
     if ((editingImage || null) !== (member.imageUrl || null)) patch.imageUrl = editingImage || null;
+    if ((editingSocial || null) !== (member.socialMedia || null)) patch.socialMedia = editingSocial || null;
+    if ((editingDob || null) !== (member.dob || null)) patch.dob = editingDob || null;
+    if ((editingDod || null) !== (member.dod || null)) patch.dod = editingDod || null;
+    if ((editingDesc || "") !== (member.description || "")) patch.description = editingDesc || "";
     if (Object.keys(patch).length) updateMember?.(member.id, patch);
     setOpen(false);
   };
@@ -36,287 +51,119 @@ export default function MemberCard({ member, updateMember, deleteMember }) {
     setOpen(false);
   };
 
+  // hover/touch handlers
+  const showTooltip = () => setHover(true);
+  const hideTooltip = () => setHover(false);
+
+  const modal = (
+    <div
+      role="dialog"
+      aria-modal="true"
+      style={modalStyles.overlay}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+    >
+      <div style={modalStyles.dialog}>
+        <h3 style={{ marginTop: 0 }}>{member?.name || "Edit member"}</h3>
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ width: 72, height: 72, borderRadius: 12, overflow: "hidden", background: "#f3f4f6" }}>
+            {member?.imageUrl && !imgError ? (
+              <img src={member.imageUrl} alt={member.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setImgError(true)} />
+            ) : (
+              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: member?.gender === "female" ? "#ec4899" : "#3b82f6", color: "#fff", fontWeight: 700 }}>
+                {member?.name ? member.name[0].toUpperCase() : "?"}
+              </div>
+            )}
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <div style={{ marginBottom: 6 }}>
+              <strong>Parents:</strong> {mother ? mother.name : member.parents && member.parents.length ? "Unknown (mother not recorded)" : "— none —"}{father ? `, ${father.name}` : ""}
+            </div>
+            <div style={{ marginBottom: 6 }}>
+              <strong>DOB:</strong> {member?.dob || "—"}
+              {member?.dod ? (<><span style={{ marginLeft: 10 }}><strong>DOD:</strong> {member.dod}</span></>) : null}
+            </div>
+            <div><strong>Social:</strong> {member?.socialMedia ? <a href={member.socialMedia} target="_blank" rel="noreferrer">{member.socialMedia}</a> : "—"}</div>
+          </div>
+        </div>
+
+        <hr style={{ margin: "12px 0" }} />
+
+        <label style={modalStyles.label}>Name
+          <input value={editingName} onChange={e => setEditingName(e.target.value)} style={modalStyles.input} />
+        </label>
+
+        <label style={modalStyles.label}>Image URL
+          <input value={editingImage || ""} onChange={e => setEditingImage(e.target.value)} style={modalStyles.input} />
+        </label>
+
+        <label style={modalStyles.label}>Social media (link)
+          <input value={editingSocial || ""} onChange={e => setEditingSocial(e.target.value)} style={modalStyles.input} placeholder="https://..." />
+        </label>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <label style={{ ...modalStyles.label, flex: 1 }}>DOB
+            <input type="date" value={editingDob || ""} onChange={e => setEditingDob(e.target.value)} style={modalStyles.input} />
+          </label>
+          <label style={{ ...modalStyles.label, flex: 1 }}>DOD
+            <input type="date" value={editingDod || ""} onChange={e => setEditingDod(e.target.value)} style={modalStyles.input} />
+          </label>
+        </div>
+
+        <label style={modalStyles.label}>Description
+          <textarea value={editingDesc} onChange={e => setEditingDesc(e.target.value)} style={{ ...modalStyles.input, minHeight: 80 }} placeholder="Short bio, notes..." />
+        </label>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+          <button onClick={() => setOpen(false)} style={modalStyles.btnAlt}>Cancel</button>
+          <button onClick={save} style={modalStyles.btnSave}>Save</button>
+          <button onClick={onDelete} style={modalStyles.btnDelete}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {/* Avatar Wrapper */}
       <div
-        style={styles.wrapper}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
+        style={{ display: "inline-block", position: "relative", margin: 6 }}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+        onTouchStart={showTooltip}
+        onTouchEnd={hideTooltip}
+        onTouchCancel={hideTooltip}
       >
-        <button
-          onClick={() => setOpen(true)}
-          style={styles.avatarButton}
-        >
+        <button onClick={() => setOpen(true)} style={avatarStyles.button} aria-label={member?.name || "Member"}>
           {member?.imageUrl && !imgError ? (
-            <img
-              src={member.imageUrl}
-              alt={member.name}
-              style={styles.avatarImg}
-              onError={() => setImgError(true)}
-            />
+            <img src={member.imageUrl} alt={member.name} style={avatarStyles.img} onError={() => setImgError(true)} />
           ) : (
-            <div style={styles.fallbackAvatar(member?.gender)}>
-              {member?.name ? member.name[0].toUpperCase() : "?"}
-            </div>
+            <div style={avatarStyles.fallback(member?.gender)}>{member?.name ? member.name[0].toUpperCase() : "?"}</div>
           )}
         </button>
 
-        {/* Hover tooltip */}
-        {hover && (
-          <div style={styles.hoverName}>
-            {member?.name || "Unnamed"}
-          </div>
-        )}
+        {hover && <div style={avatarStyles.tooltip}>{member?.name || "Unnamed"}</div>}
       </div>
 
-      {/* Modal */}
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          style={styles.modalOverlay}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
-          <div style={styles.modal}>
-            <h3 style={{
-              marginTop: 0,
-              fontSize: 24,
-              fontWeight: 700,
-              color: "var(--neutral-800)",
-              marginBottom: "var(--spacing-2)",
-            }}>Edit Member</h3>
-
-            <label style={styles.modalLabel}>
-              Name
-              <input
-                value={editingName}
-                onChange={(e) => setEditingName(e.target.value)}
-                style={styles.modalInput}
-              />
-            </label>
-
-            <label style={styles.modalLabel}>
-              Image URL
-              <input
-                value={editingImage || ""}
-                onChange={(e) => setEditingImage(e.target.value)}
-                style={styles.modalInput}
-                placeholder="https://example.com/photo.jpg"
-              />
-            </label>
-
-            {/* Preview */}
-            {editingImage ? (
-              <div style={styles.previewRow}>
-                <div style={styles.previewBox}>
-                  <img
-                    src={editingImage}
-                    style={styles.previewImg}
-                    alt="preview"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                </div>
-                <span style={{ fontSize: 12, color: "#444" }}>
-                  Preview (if it doesn't appear, URL may be invalid).
-                </span>
-              </div>
-            ) : null}
-
-            <div style={styles.modalButtons}>
-              <button onClick={() => setOpen(false)} style={styles.btnAlt}>
-                Cancel
-              </button>
-              <button onClick={save} style={styles.btnSave}>
-                Save
-              </button>
-              <button onClick={onDelete} style={styles.btnDelete}>
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {open && ReactDOM.createPortal(modal, document.body)}
     </>
   );
 }
 
-const styles = {
-  wrapper: {
-    display: "inline-block",
-    position: "relative",
-    margin: "var(--spacing-1)",
-  },
+/* small style objects */
+const avatarStyles = {
+  button: { background: "transparent", border: "none", padding: 0, cursor: "pointer", outline: "none" },
+  img: { width: 60, height: 60, borderRadius: "50%", objectFit: "cover", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" },
+  fallback: (g) => ({ width: 60, height: 60, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: g === "female" ? "#ec4899" : "#3b82f6", color: "#fff", fontSize: 20, fontWeight: 700 }),
+  tooltip: { position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", marginTop: 6, padding: "4px 10px", background: "rgba(0,0,0,0.85)", color: "#fff", borderRadius: 6, fontSize: 13, whiteSpace: "nowrap", zIndex: 9999 }
+};
 
-  avatarButton: {
-    background: "transparent",
-    border: "none",
-    padding: 0,
-    cursor: "pointer",
-    outline: "none",
-    transition: "transform var(--transition-fast)",
-    display: "block",
-  },
-
-  avatarImg: {
-    width: "clamp(60px, 12vw, 80px)",
-    height: "clamp(60px, 12vw, 80px)",
-    borderRadius: "var(--radius-full)",
-    objectFit: "cover",
-    display: "block",
-    boxShadow: "var(--shadow-lg)",
-    border: "3px solid white",
-    transition: "all var(--transition-base)",
-  },
-
-  fallbackAvatar: (gender) => ({
-    width: "clamp(60px, 12vw, 80px)",
-    height: "clamp(60px, 12vw, 80px)",
-    borderRadius: "var(--radius-full)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: gender === "female"
-      ? "linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
-      : "linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%)",
-    color: "#fff",
-    fontSize: "clamp(24px, 5vw, 32px)",
-    fontWeight: 700,
-    boxShadow: "var(--shadow-lg)",
-    border: "3px solid white",
-    transition: "all var(--transition-base)",
-  }),
-
-  hoverName: {
-    position: "absolute",
-    top: "calc(100% + 8px)",
-    left: "50%",
-    transform: "translateX(-50%)",
-    padding: "8px 16px",
-    background: "var(--neutral-800)",
-    color: "#fff",
-    borderRadius: "var(--radius-md)",
-    fontSize: 14,
-    fontWeight: 500,
-    whiteSpace: "nowrap",
-    zIndex: 20,
-    boxShadow: "var(--shadow-lg)",
-    animation: "fadeIn var(--transition-fast)",
-  },
-
-  modalOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.6)",
-    backdropFilter: "blur(4px)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2000,
-    padding: "var(--spacing-3)",
-    animation: "fadeIn var(--transition-base)",
-  },
-
-  modal: {
-    width: "clamp(280px, 90vw, 480px)",
-    maxWidth: "100%",
-    background: "#fff",
-    padding: "clamp(var(--spacing-2), 4vw, var(--spacing-4))",
-    borderRadius: "var(--radius-xl)",
-    boxShadow: "var(--shadow-xl)",
-    animation: "slideUp var(--transition-base)",
-  },
-
-  modalLabel: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "var(--spacing-1)",
-    marginTop: "var(--spacing-2)",
-    fontSize: "clamp(13px, 3vw, 14px)",
-    fontWeight: 500,
-    color: "var(--neutral-700)",
-  },
-
-  modalInput: {
-    padding: "clamp(10px, 2vw, 12px) clamp(12px, 3vw, 16px)",
-    borderRadius: "var(--radius-md)",
-    border: "2px solid var(--neutral-200)",
-    fontSize: "clamp(14px, 3vw, 15px)",
-    transition: "all var(--transition-fast)",
-    outline: "none",
-    fontFamily: "inherit",
-  },
-
-  previewRow: {
-    display: "flex",
-    gap: "var(--spacing-2)",
-    alignItems: "center",
-    marginTop: "var(--spacing-2)",
-    padding: "var(--spacing-2)",
-    background: "var(--neutral-50)",
-    borderRadius: "var(--radius-md)",
-  },
-
-  previewBox: {
-    width: "clamp(70px, 15vw, 80px)",
-    height: "clamp(70px, 15vw, 80px)",
-    borderRadius: "var(--radius-lg)",
-    overflow: "hidden",
-    background: "var(--neutral-100)",
-    boxShadow: "var(--shadow-sm)",
-    border: "2px solid white",
-  },
-
-  previewImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
-
-  modalButtons: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "var(--spacing-2)",
-    marginTop: "var(--spacing-4)",
-  },
-
-  btnAlt: {
-    background: "var(--neutral-100)",
-    padding: "12px 20px",
-    borderRadius: "var(--radius-md)",
-    border: "2px solid var(--neutral-200)",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 15,
-    transition: "all var(--transition-fast)",
-    color: "var(--neutral-700)",
-  },
-
-  btnSave: {
-    background: "linear-gradient(135deg, var(--secondary-500) 0%, var(--secondary-600) 100%)",
-    color: "#fff",
-    padding: "12px 20px",
-    borderRadius: "var(--radius-md)",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 15,
-    transition: "all var(--transition-fast)",
-    boxShadow: "var(--shadow-sm)",
-  },
-
-  btnDelete: {
-    background: "linear-gradient(135deg, var(--error-500) 0%, var(--error-600) 100%)",
-    color: "#fff",
-    padding: "12px 20px",
-    borderRadius: "var(--radius-md)",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 15,
-    transition: "all var(--transition-fast)",
-    boxShadow: "var(--shadow-sm)",
-  },
+const modalStyles = {
+  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2147483647, padding: 20 },
+  dialog: { width: 520, maxWidth: "100%", background: "#fff", padding: 18, borderRadius: 10, boxShadow: "0 10px 40px rgba(0,0,0,0.25)" },
+  label: { display: "flex", flexDirection: "column", gap: 6, marginTop: 10 },
+  input: { padding: 8, borderRadius: 6, border: "1px solid #ddd", fontSize: 14, marginTop: 6 },
+  btnAlt: { background: "#e5e7eb", padding: "8px 14px", borderRadius: 8, border: "none", cursor: "pointer" },
+  btnSave: { background: "#2563eb", color: "#fff", padding: "8px 14px", borderRadius: 8, border: "none", cursor: "pointer" },
+  btnDelete: { background: "#ef4444", color: "#fff", padding: "8px 14px", borderRadius: 8, border: "none", cursor: "pointer" },
 };
