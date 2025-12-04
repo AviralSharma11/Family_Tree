@@ -6,12 +6,12 @@ const STORAGE_KEY = "family_tree_data_v1";
 
 const sampleData = {
   members: {
-    1: { id: 1, name: "Alice (mother)", gender: "female", spouseId: 2, parents: [], children: [3,4] },
-    2: { id: 2, name: "Bob (father)", gender: "male", spouseId: 1, parents: [], children: [3,4] },
-    3: { id: 3, name: "Charlie", gender: "male", spouseId: null, parents: [1,2], children: [] },
-    4: { id: 4, name: "Dina", gender: "female", spouseId: 5, parents: [1,2], children: [6] },
-    5: { id: 5, name: "Evan (spouse of Dina)", gender: "male", spouseId: 4, parents: [], children: [6] },
-    6: { id: 6, name: "Fay", gender: "female", spouseId: null, parents: [4,5], children: [] }
+    1: { id: 1, name: "Kaushalya", gender: "female", imageUrl: "https://www.indianetzone.com/kaushalya_wife_king_dasaratha", spouseId: 2, parents: [], children: [3]},
+    2: { id: 2, name: "Dashrath", gender: "male", spouseId: 1, parents: [], children: [3] },
+    3: { id: 3, name: "Ram", gender: "male", spouseId: null, parents: [1,2], children: [] },
+    // 4: { id: 4, name: "", gender: "female", spouseId: 5, parents: [1,2], children: [6] },
+    // 5: { id: 5, name: "", gender: "male", spouseId: 4, parents: [], children: [6] },
+    // 6: { id: 6, name: "", gender: "female", spouseId: null, parents: [4,5], children: [] }
   }
 };
 
@@ -30,23 +30,20 @@ export default function App() {
   }, [data]);
 
   const addMember = (member, attach) => {
-    // member = { name, gender }
-    // attach = { type: 'root'|'child'|'spouse', targetId }
     const id = Date.now();
-    const newMembers = { ...data.members, [id]: { id, name: member.name, gender: member.gender, spouseId: null, parents: [], children: [] } };
+    const newMembers = {
+      ...data.members,
+      [id]: { id, name: member.name, gender: member.gender, spouseId: null, parents: [], children: [] }
+    };
 
     if (attach?.type === "spouse" && attach.targetId) {
-      // set spouse both ways
       const target = { ...newMembers[attach.targetId], spouseId: id };
       newMembers[attach.targetId] = target;
       newMembers[id].spouseId = attach.targetId;
     } else if (attach?.type === "child" && attach.targetId) {
-      // add child to target and if target has spouse, set both as parents
       const target = newMembers[attach.targetId];
       const spouseId = target?.spouseId || null;
-      // update parents in new child
       newMembers[id].parents = spouseId ? [attach.targetId, spouseId] : [attach.targetId];
-      // add child id to parents children arrays
       newMembers[attach.targetId] = { ...target, children: [...(target.children || []), id] };
       if (spouseId) {
         const spouse = newMembers[spouseId];
@@ -65,32 +62,82 @@ export default function App() {
     });
   };
 
+  const deleteMember = (idToDelete) => {
+    setData(prev => {
+      const copy = { ...prev.members };
+
+      // If the member doesn't exist, do nothing
+      if (!copy[idToDelete]) return prev;
+
+      // 1) Remove references to this member from all other members
+      Object.keys(copy).forEach(k => {
+        const m = copy[k];
+        if (!m) return;
+
+        // clear spouse link if pointing to deleted id
+        if (m.spouseId && m.spouseId === idToDelete) {
+          copy[k] = { ...m, spouseId: null };
+        }
+
+        // remove from parents array if present
+        if (Array.isArray(m.parents) && m.parents.some(p => p === idToDelete)) {
+          copy[k] = { ...copy[k], parents: m.parents.filter(p => p !== idToDelete) };
+        }
+
+        // remove from children array if present
+        if (Array.isArray(m.children) && m.children.some(c => c === idToDelete)) {
+          copy[k] = { ...copy[k], children: m.children.filter(c => c !== idToDelete) };
+        }
+      });
+
+      // 2) delete member itself
+      delete copy[idToDelete];
+
+      return { members: copy };
+    });
+  };
+
   return (
     <div style={styles.app}>
       <h1 style={styles.title}>Family Tree</h1>
-      <div style={styles.container}>
-        <div style={styles.treeWrap}>
-          <FamilyTree members={data.members} updateMember={updateMember} />
-        </div>
-        <div style={styles.dashboardWrap}>
-          <Dashboard members={data.members} onAdd={addMember} />
-        </div>
+
+      {/* Tree fills the viewport height and is scrollable */}
+      <div style={styles.treeContainer}>
+        <FamilyTree members={data.members} updateMember={updateMember} deleteMember={deleteMember} />
       </div>
 
-      <style>{`
-        /* small responsive tweaks */
-        @media (max-width: 720px) {
-          .ft-row { flex-direction: column; }
-        }
-      `}</style>
+      {/* Dashboard sits below the tree */}
+      <div style={styles.dashboardContainer}>
+        <Dashboard members={data.members} onAdd={addMember} />
+      </div>
     </div>
   );
 }
 
 const styles = {
-  app: { fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial", padding: 12 },
-  title: { margin: "8px 0 16px" },
-  container: { display: "flex", gap: 16, alignItems: "flex-start", flexDirection: "row" , maxWidth: 1100},
-  treeWrap: { flex: 1, minWidth: 260, overflowX: "auto" },
-  dashboardWrap: { width: 360, minWidth: 260 }
+  app: {
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial",
+    padding: 12,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+    alignItems: "stretch",
+  },
+  title: { margin: "8px 0 0", fontSize: 20 },
+
+  treeContainer: {
+    borderRadius: 8,
+    padding: 8,
+    background: "#fafafa",
+    height: "100vh",
+    overflowY: "auto",
+    overflowX: "hidden",
+  },
+
+  dashboardContainer: {
+    marginTop: 8,
+    width: "100%",
+    maxWidth: 980,
+    alignSelf: "center",
+  },
 };
