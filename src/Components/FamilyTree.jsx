@@ -162,7 +162,7 @@ const styles = {
     display: "flex",
     gap: "var(--spacing-3)",
     alignItems: "flex-start",
-    justifyContent: "center",
+    justifyContent: "space-between",
     paddingBottom: "var(--spacing-2)",
     flexWrap: "wrap",
   },
