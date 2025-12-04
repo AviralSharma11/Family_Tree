@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MemberCard from "./MemberCard.jsx";
 
 /*
-  FamilyTree (updated)
-  - removed horizontal scrolling for children
-  - children now wrap to new lines (flex-wrap) and are centered
-  - keeps canonical root logic and overall structure
-  - passes full members map into MemberCard so cards can resolve parents/social/dates/description
+  FamilyTree (fixed connector alignment)
+
+  Key changes:
+  - Each Node measures its parentInner width (the two avatars + gap) using a ref + ResizeObserver
+  - Marriage connector and horizontal child connector are rendered as SVGs sized to that measured width
+  - Children row uses justifyContent: "center" to align children under the connector
 */
 
 export default function FamilyTree({
@@ -51,16 +52,48 @@ export default function FamilyTree({
   );
 }
 
+/* Node: recursive component representing a member + spouse + children */
 function Node({ node, map, updateMember, deleteMember }) {
   const children = Object.values(map).filter((m) =>
     (m.parents || []).includes(node.id)
   );
   const spouse = map[node.spouseId];
 
+  // ref to the parentInner (avatars container) so we can measure width
+  const parentInnerRef = useRef(null);
+  const [parentInnerWidth, setParentInnerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = parentInnerRef.current;
+    if (!el) return;
+
+    // measure initially
+    const measure = () => setParentInnerWidth(Math.max(0, Math.round(el.getBoundingClientRect().width)));
+
+    // use ResizeObserver when available for better reactivity
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(() => measure());
+      ro.observe(el);
+      // initial
+      measure();
+      return () => ro.disconnect();
+    }
+
+    // fallback: window resize
+    measure();
+    const onResize = () => measure();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [parentInnerRef, spouse, node.id]); // re-run if spouse changes
+
+  // width for the connector: if measured width is 0 fallback to 200
+  const connectorWidth = parentInnerWidth > 0 ? parentInnerWidth : 200;
+
   return (
     <div style={styles.nodeColumn}>
       <div style={styles.parentRow}>
-        <div style={styles.parentInner}>
+        {/* parentInner is the container for 1 or 2 MemberCards */}
+        <div ref={parentInnerRef} style={styles.parentInner}>
           <MemberCard
             member={node}
             members={map}
@@ -80,35 +113,31 @@ function Node({ node, map, updateMember, deleteMember }) {
           )}
         </div>
 
+        {/* marriage connector drawn with measured width and centered */}
         {spouse && (
-  <svg width="200" height="3">
-    <line x1="0" y1="1" x2="200" y2="1" stroke="#9CA3AF" strokeWidth="2" />
-  </svg>
-)}
-
+          <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: 8 }}>
+            <svg width={connectorWidth} height="6" role="img" aria-hidden="true">
+              <line x1="0" y1="3" x2={connectorWidth} y2="3" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+        )}
       </div>
 
       {children.length > 0 && (
         <div style={styles.childrenSection}>
-          <svg width="14" height="20" style={styles.verticalSvg}>
-            <line
-              x1="7"
-              y1="0"
-              x2="7"
-              y2="20"
-              stroke="#9CA3AF"
-              strokeWidth="2"
-            />
+          {/* small vertical line under parent pair */}
+          <svg width="14" height="20" style={styles.verticalSvg} aria-hidden="true">
+            <line x1="7" y1="0" x2="7" y2="20" stroke="#9CA3AF" strokeWidth="2" />
           </svg>
 
-         <div style={styles.horizontalConnectorWrapper}>
-  <svg width="100%" height="3" style={{ overflow: "visible" }}>
-    <line x1="0" y1="1" x2="1000" y2="1" stroke="#9CA3AF" strokeWidth="2" />
-  </svg>
-</div>
+          {/* horizontal connector centered and sized to match parentInner */}
+          <div style={styles.horizontalConnectorWrapper}>
+            <svg width={connectorWidth} height="6" style={{ overflow: "visible" }} aria-hidden="true">
+              <line x1="0" y1="3" x2={connectorWidth} y2="3" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
 
-
-          {/* children row no longer scrolls horizontally; it wraps */}
+          {/* children row: center children so they're aligned under the connector */}
           <div style={styles.childrenScroll}>
             <div style={styles.childrenRow}>
               {children.map((child) => (
@@ -168,18 +197,11 @@ const styles = {
     gap: "var(--spacing-3)",
     zIndex: 2,
     marginBottom: "var(--spacing-2)",
+    // ensure parentInner shrinks to content and is centered by parent's flex
+    alignSelf: "center",
   },
 
   spouseGap: { width: "var(--spacing-2)" },
-
-  marriageLine: {
-    height: 3,
-    width: "40%",
-    background:
-      "linear-gradient(90deg, var(--neutral-300) 0%, var(--neutral-400) 50%, var(--neutral-300) 100%)",
-    borderRadius: "var(--radius-sm)",
-    boxShadow: "var(--shadow-sm)",
-  },
 
   childrenSection: {
     width: "100%",
@@ -194,18 +216,11 @@ const styles = {
   },
 
   horizontalConnectorWrapper: {
-    width: "90%",
+    // center the connector svg (which is sized to parentInner width)
+    width: "100%",
     display: "flex",
     justifyContent: "center",
-  },
-
-  horizontalConnector: {
-    height: 3,
-    width: "100%",
-    background:
-      "linear-gradient(90deg, var(--neutral-300) 0%, var(--neutral-400) 50%, var(--neutral-300) 100%)",
-    borderRadius: "var(--radius-sm)",
-    boxShadow: "var(--shadow-sm)",
+    marginBottom: 8,
   },
 
   childrenScroll: {
@@ -218,9 +233,11 @@ const styles = {
     display: "flex",
     gap: "var(--spacing-3)",
     alignItems: "flex-start",
-    justifyContent: "space-between",
+    justifyContent: "center", /* center children under connector */
     paddingBottom: "var(--spacing-2)",
     flexWrap: "wrap",
+    boxSizing: "border-box",
+    width: "100%",
   },
 
   childCell: {
@@ -230,3 +247,5 @@ const styles = {
     marginBottom: "var(--spacing-2)",
   },
 };
+
+export { Node };
